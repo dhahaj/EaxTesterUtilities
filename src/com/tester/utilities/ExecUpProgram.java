@@ -1,10 +1,14 @@
 package com.tester.utilities;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ProcessBuilder.Redirect;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,10 +34,22 @@ public final class ExecUpProgram {
 	private static Path FIRMWARE_FILE = null;
 	private static String USER = null;
 	private static File LOG_FILE = new File(WORKING_DIR + "\\" + LOG_FILENAME);
-	private static final File BATCHFILE = new File("run_programmer.bat");
-	public static boolean DEBUG = false;
+	private static File BATCHFILE = new File("program.bat");
+	public static boolean DEBUG = true;
 
 	public static void main(String[] args) {
+		// File file = getResourceAsFile("program.bat");
+		// Path p = file.toPath();
+		// Path target = Paths.get("C:\\tester\\program.bat");
+		// try {
+		// Path n = Files.copy(p, target, StandardCopyOption.REPLACE_EXISTING);
+		// println(n);
+		// println(FileUtilities.readFile(file));
+		// } catch (IOException e) {
+		// e.printStackTrace();
+		// }
+		// return;
+
 		// Check for the correct arguments
 		if (args.length < 2) {
 			println("\nError.\n\tUsage: java -jar execUp.jar [username] [path to firmware]\n");
@@ -52,15 +68,16 @@ public final class ExecUpProgram {
 			return;
 		}
 
-		if (!BATCHFILE.exists()) {
-			println("Error: Batch file not found!");
-			return;
-		}
-
 		if (!(new File("C:\\tester").exists())) {
 			println("Error: Missing required tester folder (C:\\tester\\).");
 			return;
 		}
+
+		if (!BATCHFILE.exists()) {
+			println("Batch file not found! Creating from resources.");
+			createBatchFile();
+		}
+
 		RUNNING = true;
 		int i = runProgrammer(BATCHFILE.toString(), FIRMWARE_FILE.toString());
 
@@ -111,6 +128,12 @@ public final class ExecUpProgram {
 	public static int runDefault(String user, Path firmware) {
 		USER = user;
 		FIRMWARE_FILE = firmware;
+		if (!BATCHFILE.exists()) {
+			debug("Creating batch file.");
+			createBatchFile();
+			BATCHFILE = new File("program.bat");
+			println(BATCHFILE.toString());
+		}
 		return runProgrammer(BATCHFILE.toString(), FIRMWARE_FILE.toString());
 	}
 
@@ -167,7 +190,7 @@ public final class ExecUpProgram {
 		} catch (IOException | InterruptedException e) {
 			debug(e);
 		}
-		return -1;
+		return 0;
 	}
 
 	static void printMap(Map<String, String> map) {
@@ -175,11 +198,6 @@ public final class ExecUpProgram {
 			println("Key=" + entry.getKey() + ", value=" + entry.getValue());
 		}
 	}
-
-	// private static boolean checkForRequirements() {
-	// File c = new File("C:\\tester");
-	// return c.exists();
-	// }
 
 	private static void debug(Object o) {
 		if (DEBUG)
@@ -211,4 +229,37 @@ public final class ExecUpProgram {
 		USER = user;
 	}
 
+	public static File getResourceAsFile(String resourcePath) {
+		try {
+			InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(resourcePath);
+			if (in == null)
+				return null;
+
+			File tempFile = File.createTempFile(String.valueOf(in.hashCode()), ".tmp");
+			tempFile.deleteOnExit();
+
+			try (FileOutputStream out = new FileOutputStream(tempFile)) {
+				byte[] buffer = new byte[1024]; // copy stream
+				int bytesRead;
+				while ((bytesRead = in.read(buffer)) != -1)
+					out.write(buffer, 0, bytesRead);
+			}
+			return tempFile;
+		} catch (IOException e) {
+			debug(e);
+			return null;
+		}
+	}
+
+	private static void createBatchFile() {
+		File batchfile = getResourceAsFile("program.bat");
+		Path p = batchfile.toPath();
+		Path target = Paths.get("C:\\tester\\program.bat");
+		try {
+			Files.copy(p, target, StandardCopyOption.COPY_ATTRIBUTES);
+		} catch (IOException e) {
+			debug(e);
+		}
+		return;
+	}
 }
