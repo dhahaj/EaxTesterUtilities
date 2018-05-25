@@ -1,0 +1,14 @@
+0 Problem-free execution.
+1 File error. File not found or incorrect file format, for example.
+2 Equipment error. Communication test failed, communication error.
+3 Programming preparation error. device cannot be erased, etc.
+4 Programming error.
+5 Verification error.
+6 Programming failed due to a need to communicate with user.
+7 Device ID error.
+8 Not supported.
+9 Error of the serial number entered using the /sn parameter.
+0x10000 + const Revision of the device read using /getpartrev parameter.
+
+Note: The return value can be found in the %errorlevel% variable if working with batch files.
+See the “read_avr_eeprom.bat“ sample batch file in the installation directory of UP.

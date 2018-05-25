@@ -1,0 +1,4 @@
+This file contains the serial information used by UP;
+ The text below directs the software to place the ASCII characters ;
+ into the data section of the firmware at address 0x20 ;
+: data.0020 'T' 'C' 'M' ',' '5' '0' '0' '-' '0' '5' '/' '1' '0' ;
